@@ -1,0 +1,27 @@
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_11_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_26_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_27_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_28_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_29_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_30_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_31_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_36_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_41_D010_20210501\(2\).sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_41_D010_20210501\(3\).sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_41_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_42_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_43_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_44_D010_20210501\(2\).sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_44_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_45_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_46_D010_20210501\(2\).sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_46_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_47_D010_20210501\(2\).sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_47_D010_20210501\(3\).sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_47_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_48_D010_20210501\(2\).sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_48_D010_20210501.sql
+PGPASSWORD=solomonts psql -d mpoidb -h localhost -U mpoi -f AL_50_D010_20210501.sql
+
+=== 좌표계 변환 ===
+ALTER TABLE SMT_ALL_BULD_GIS ALTER COLUMN geom TYPE geometry(MultiPolygon, 4326) USING ST_Transform(ST_SetSRID(geom, 5179), 4326);

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.solomon.service.dao.solomonDAO">
+
+	<select id="solomonTest" parameterType="java.util.Map" resultType="java.util.Map">
+	    
+	    SELECT STOR_SEQ, STOR_NAME, STOR_CLASS, STOR_XPOS, STOR_YPOS, GEOM
+	    FROM POI_STOR_GIS
+	    WHERE 1=1
+	    <if test='reqName != null and !reqName.equals("") '>
+	    	AND STOR_NAME LIKE #{reqName}||'%'
+	    </if>
+	    <if test='reqClass != null and !reqClass.equals("") '>
+	    	AND STOR_CLASS = #{reqClass}
+	    </if>
+	</select>
+	<select id="positionSolomonTest" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT A.CTP_KOR_NM, B.SIG_KOR_NM, C.EMD_KOR_NM, A.CTPRVN_CD, B.SIG_CD, C.EMD_CD, C.GEOM
+			
+		  FROM SMT_ADM_DSTR_CTPRVN_GIS A, SMT_ADM_DSTR_SIG_GIS B, SMT_ADM_DSTR_EMD_GIS C
+		 WHERE A.CTPRVN_CD = SUBSTR(B.SIG_CD,0,3)
+		   AND B.SIG_CD    = SUBSTR(C.EMD_CD,0,6)
+		   AND ST_CONTAINS(C.GEOM, ST_SetSRID(ST_MakePoint(FLOAT8(#{xPos}),  FLOAT8(#{yPos})), 4326) )
+		 LIMIT 30;
+	</select>
+	
+	<select id="searchPosition" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT A4 AS address , A5 AS ADDRESSNUM
+			 ,ST_AsText(st_centroid(GEOM)) AS POINT
+			 ,ST_X(st_centroid(GEOM)) AS XPOS
+			 ,ST_Y(st_centroid(GEOM)) AS YPOS
+			 ,ST_Distance(
+						 ST_GeomFromText(ST_AsText(st_centroid(GEOM)),4326), 
+						 ST_SetSRID(ST_MakePoint(FLOAT8(#{xPos}),  FLOAT8(#{yPos})), 4326)
+						) AS DISTANCE
+		FROM SMT_ALL_BULD_GIS
+		WHERE ST_DWithin(
+						 ST_Transform(ST_GeomFromText(ST_AsText(st_centroid(GEOM)),4326), 2097), 
+						 ST_Transform(ST_SetSRID(ST_MakePoint(FLOAT8(#{xPos}),  FLOAT8(#{yPos})), 4326), 2097)
+						, 1000)
+						
+		ORDER BY (ST_SetSRID(ST_MakePoint(FLOAT8(#{xPos}),  FLOAT8(#{yPos})), 4326) &lt;#&gt; GEOM)
+		LIMIT 100;
+	</select>
+	<insert id="positionInsertSolomonTest" parameterType="Map">
+		insert into POI_STOR_GIS 
+		  (STOR_NAME, STOR_CLASS, STOR_CLASS_ID, STOR_XPOS, STOR_YPOS, GEOM)
+	    values 
+	      (#{reqName}, #{reqClass}, #{reqClassId}, #{xPos}, #{yPos},ST_SetSRID(ST_MakePoint( FLOAT8(#{xPos}), FLOAT8(#{yPos})), 4326));
+	</insert>
+</mapper>

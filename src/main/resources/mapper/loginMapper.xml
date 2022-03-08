@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.login.service.dao.loginDAO">
+
+	<select id="loginCheck" parameterType="java.util.Map" resultType="java.util.Map">
+	    
+	    SELECT USER_ID, USER_PW, USER_NM, USER_AUTH, QUIT_YN, REG_DT, QUIT_DT, UDT_DT
+	      FROM SMT_USER
+	     WHERE 1=1
+    	   AND USER_ID = #{USER_ID}
+    	   AND USER_PW = #{USER_PW}
+	</select>
+	
+	<select id="loginIdCheck" parameterType="java.util.Map" resultType="java.util.Map">
+	    
+	    SELECT USER_ID, USER_PW, USER_NM, USER_AUTH, QUIT_YN, REG_DT, QUIT_DT, UDT_DT
+	      FROM SMT_USER
+	     WHERE 1=1
+    	   AND USER_ID = #{USER_ID}
+	</select>
+	
+	<insert id="inserUser" parameterType="Map">
+		insert into smt_user 
+			( user_id, user_pw, user_nm, user_auth,quit_dt, udt_dt) 
+		values
+		    (#{USER_ID}, #{USER_PW}, #{USER_NM}, #{USER_AUTH}, NOW(), NOW())
+	</insert>
+	
+</mapper>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.consumer.service.dao.consumerDAO">
+
+	<select id="searchPosition" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT A.CTP_KOR_NM ||' ' || B.SIG_KOR_NM ||' ' || C.EMD_KOR_NM AS STR_DIST
+		  FROM SMT_ADM_DSTR_CTPRVN_GIS A, SMT_ADM_DSTR_SIG_GIS B, SMT_ADM_DSTR_EMD_GIS C
+		 WHERE A.CTPRVN_CD = SUBSTR(B.SIG_CD,0,3)
+		   AND B.SIG_CD    = SUBSTR(C.EMD_CD,0,6)
+		   AND ST_CONTAINS(C.GEOM, ST_SetSRID(ST_MakePoint(CAST(#{xPos} as numeric),  CAST(#{yPos} as numeric)), 4326))
+		 LIMIT 30;
+	</select>
+	
+	<select id="searchCategory" parameterType="java.util.Map" resultType="java.util.Map">
+		WITH RECURSIVE t AS (
+		  SELECT CTG_ID, CTG_NM, CTG_PRNT_ID, CTG_ORD
+		  FROM  SMT_CATEGORY
+		  WHERE  CTG_PRNT_ID = 'null'
+		
+		  UNION ALL
+		  SELECT A.CTG_ID, A.CTG_NM, A.CTG_PRNT_ID, A.CTG_ORD
+		  FROM  SMT_CATEGORY a
+		  JOIN  t ON a.CTG_PRNT_ID = t.CTG_ID
+		  )
+		SELECT CTG_ID, CTG_NM, CTG_PRNT_ID, CTG_ORD
+		FROM  t
+		ORDER  BY CTG_ID, CTG_ORD;
+	</select>
+	
+	<select id="searchStore" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT A.str_dist
+			 ,A.STR_NM
+			 ,A.SLS_DW
+			 ,A.SLS_ST_TM
+			 ,A.SLS_ED_TM
+			 ,A.SRCH_TAG
+			 ,A.CTG_ID
+			 ,B.MENU_DES
+			 ,ST_AsText(st_centroid(A.GEOM)) AS POINT
+			 ,ST_X(st_centroid(A.GEOM)) AS XPOS
+			 ,ST_Y(st_centroid(A.GEOM)) AS YPOS
+			 ,ST_Distance(
+						 ST_Transform(ST_GeomFromText(ST_AsText(st_centroid(A.GEOM)),4326), 2097), 
+						 ST_Transform(ST_SetSRID(ST_MakePoint(CAST(#{xPos_mypostion} as numeric),  CAST(#{yPos_mypostion} as numeric)), 4326), 2097)
+						) AS DISTANCE
+		FROM SMT_STORE A, (SELECT STR_ID, STRING_AGG(DISTINCT MENU_NM ||' ' || MENU_PRC, ',' ) AS MENU_DES 
+							 FROM SMT_STORE_MENU 
+							GROUP BY STR_ID) B
+		WHERE 1=1
+		  AND A.STR_ID = B.STR_ID
+		  AND ST_DWithin(
+						 ST_Transform(ST_GeomFromText(ST_AsText(st_centroid(A.GEOM)),4326), 2097), 
+						 ST_Transform(ST_SetSRID(ST_MakePoint(cast(#{xPos} as numeric),  cast(#{yPos} as numeric)), 4326), 2097)
+						, 1000)
+		<!-- ORDER BY (ST_SetSRID(ST_MakePoint(CAST(#{xPos_mypostion} as numeric),  CAST(#{yPos_mypostion} as numeric)), 4326) &lt;#&gt; st_centroid(A.GEOM)) -->
+		ORDER BY DISTANCE
+		LIMIT 100
+	</select>
+	
+	<insert id="insertStore" parameterType="Map">
+		insert into smt_store (str_nm, str_cnt, str_dist, GEOM, sls_dw, sls_st_tm,
+				  sls_ed_tm, srch_tag, ctg_id, user_id, udt_dt) values 
+				  (#{str_nm}, #{str_cnt},#{str_dist},
+				   ST_SetSRID(ST_MakePoint( CAST(#{xPos} as numeric), CAST(#{yPos} as numeric)), 4326),
+				  #{sls_dw}, #{sls_st_tm}::time,#{sls_ed_tm}::time, #{srch_tag}, #{ctg_id}, #{user_id}, NOW()
+				  )
+	</insert>
+	
+	<insert id="insertMenu" parameterType="Map">
+		insert into SMT_STORE_MENU (str_id, menu_nm, menu_prc, menu_dscnt, 
+									menu_cnt, menu_ord, udt_dt) 
+									values 
+								  ('c65bbca5-9fa3-4e71-af12-0eaa0f83ad83', #{menu_nm}, #{menu_prc}::integer, #{menu_dscnt}::integer,
+								  #{menu_cnt}, #{menu_ord}::smallint, now() )
+	</insert>
+	
+	<select id="searchStoreName" parameterType="java.util.Map" resultType="java.util.Map">
+	    SELECT STOR_SEQ, STOR_NAME, STOR_CLASS, STOR_XPOS, STOR_YPOS, GEOM
+	    FROM POI_STOR_GIS
+	    WHERE 1=1
+	    <if test='reqName != null and !reqName.equals("") '>
+	    	AND STOR_NAME LIKE #{reqName}||'%'
+	    </if>
+	    <if test='reqClass != null and !reqClass.equals("") '>
+	    	AND STOR_CLASS = #{reqClass}
+	    </if>
+	</select>
+	
+
+	<insert id="positionInsertconsumerTest" parameterType="Map">
+		insert into POI_STOR_GIS 
+		  (STOR_NAME, STOR_CLASS, STOR_CLASS_ID, STOR_XPOS, STOR_YPOS, GEOM)
+	    values 
+	      (#{reqName}, #{reqClass}, #{reqClassId}, #{xPos}, #{yPos},ST_SetSRID(ST_MakePoint( CAST(#{xPos} as numeric), CAST(#{yPos} as numeric)), 4326));
+	</insert>
+
+	<insert id="storeFileMain" parameterType="Map">
+		insert into SMT_ATTACH_MAIN
+		  (ATTA_MKEY, REG_DT, REG_ID, UDT_DT, DEL_YN)
+	    values 
+	      <!-- (#{}, #{logicFileNm}, #{filePath}, #{physicFileNm}, #{fileSize}, NOW(), '#{userId}',NOW(), 'N', #{logicFileExt}); -->
+	      (#{uuidName}::uuid, NOW(), 'admin', NOW(), 'n');
+	</insert>
+	
+	<insert id="storeFileAttach" parameterType="Map">
+		insert into SMT_ATTACH_FILES 
+		  (ATTA_MKEY, ATTR_FNM, ATTA_SV_PTH, ATT_SV_FNM, ATTA_FSIZE, REG_DT, REG_ID, UDT_DT, DEL_YN, ATTR_EXT)
+	    values 
+	      <!-- (#{}, #{logicFileNm}, #{filePath}, #{physicFileNm}, #{fileSize}, NOW(), '#{userId}',NOW(), 'N', #{logicFileExt}); -->
+	      (#{uuidName}::uuid, #{logicFileNm}, #{filePath}, #{physicFileNm}, #{fileSize}, NOW(), 'admin',NOW(), 'N', #{logicFileExt});
+	</insert>
+
+</mapper>

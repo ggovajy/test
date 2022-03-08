@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true" scanPeriod="30 seconds">
+	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+	<conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+	<conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+	<property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){green} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+	<property name="CONSOLE_LOG_CHARSET" value="${CONSOLE_LOG_CHARSET:-default}"/>
+	
+	
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern>
+			<charset>${CONSOLE_LOG_CHARSET}</charset>
+		</encoder>
+	</appender>
+	
+	<!-- File Appender --> 
+	
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender"> 
+	
+		<!-- 파일경로 설정 --> 
+		<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file> 
+		<!-- 출력패턴 설정--> 
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern> 
+		</encoder> 
+		<!-- Rolling 정책 --> 
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"> 
+			<!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 --> 
+			<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern> 
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP"> 
+				<!-- 파일당 최고 용량 kb, mb, gb --> 
+				<maxFileSize>10MB</maxFileSize> 
+			</timeBasedFileNamingAndTriggeringPolicy> 
+			<!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거--> 
+			<maxHistory>30</maxHistory> 
+			<!--<MinIndex>1</MinIndex>  <MaxIndex>10</MaxIndex>--> 
+		</rollingPolicy> 
+	</appender>
+	
+	<!-- 에러의 경우 파일에 로그 처리 --> 
+	<appender name="Error" class="ch.qos.logback.core.rolling.RollingFileAppender"> 
+		<filter class="ch.qos.logback.classic.filter.LevelFilter"> 
+			<level>warn</level> 
+			<onMatch>ACCEPT</onMatch> 
+			<onMismatch>DENY</onMismatch> 
+		</filter> 
+		<file>${LOG_PATH}/${ERR_LOG_FILE_NAME}.log</file> 
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern> 
+		</encoder> 
+		<!-- Rolling 정책 --> 
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"> 
+		<!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 --> 
+		
+		<fileNamePattern>${LOG_PATH}/${ERR_LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern> 
+		<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP"> 
+			<!-- 파일당 최고 용량 kb, mb, gb --> 
+			<maxFileSize>10MB</maxFileSize> 
+		</timeBasedFileNamingAndTriggeringPolicy> 
+		<!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거--> 
+		<maxHistory>60</maxHistory> 
+		</rollingPolicy> 
+	</appender>
+
+	<include resource="org/springframework/boot/logging/logback/file-appender.xml" />
+	<logger name="org.apache.catalina.startup.DigesterFactory" level="ERROR"/>
+	<logger name="org.apache.catalina.util.LifecycleBase" level="ERROR"/>
+	<logger name="org.apache.coyote.http11.Http11NioProtocol" level="WARN"/>
+	<logger name="org.apache.sshd.common.util.SecurityUtils" level="WARN"/>
+	<logger name="org.apache.tomcat.util.net.NioSelectorPool" level="WARN"/>
+	<logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="ERROR"/>
+	<logger name="org.hibernate.validator.internal.util.Version" level="WARN"/>
+	<logger name="org.springframework.boot.actuate.endpoint.jmx" level="WARN"/>
+	<logger name="jdbc.resultset" level="ERROR"/>
+	<logger name="jdbc.audit" level="ERROR"/>
+	<logger name="jdbc.sqlonly" level="ERROR"/>
+	<logger name="jdbc.sqltiming" level="ON"/>
+	<logger name="jdbc.connection" level="ERROR" />
+	<logger name="housekeeper" level="ERROR" />
+	<logger name="com.zaxxer.hikari.pool" level="ERROR" />
+	<logger name="org.thymeleaf.TemplateEngine.CONFIG" level="ERROR" />
+	<root level="${LOG_LEVEL}"> 
+		<appender-ref ref="CONSOLE"/> 
+		<appender-ref ref="FILE"/> 
+		<!-- <appender-ref ref="Error"/>  -->
+	</root> 
+	<!-- 특정패키지 로깅레벨 설정 --> 
+	<!-- <logger name="org.apache.ibatis" level="DEBUG" additivity="false"> 
+		<appender-ref ref="CONSOLE"/> 
+		<appender-ref ref="FILE"/> 
+		<appender-ref ref="Error"/> 
+	</logger> -->
+
+</configuration>
